@@ -1,69 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HLS Player - RedGifs Example</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: #121212;
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    header {
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-    video {
-      width: 90%;
-      max-width: 800px;
-      border: 4px solid #ff3366;
-      border-radius: 12px;
-      background: black;
-    }
-    .note {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #bbbbbb;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HLS Byte-Range Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        video {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+    </style>
 </head>
+
 <body>
-  <header>🎥 HLS Player Demo</header>
-  <video id="hls-video" controls playsinline muted></video>
-  <div class="note">Powered by HLS.js - Source: RedGifs</div>
+    <h1>Byte-Range HLS Video Playback</h1>
+    <video id="video" controls muted playsinline></video>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    const video = document.getElementById('hls-video');
-    const videoSrc = "https://api.redgifs.com/v2/gifs/alarmingjuicywoodstorks/sd.m3u8";
+    <script>
+        const video = document.getElementById('video');
+        // URL of your backend playlist
+        const playlistUrl = 'https://test-video-backend.onrender.com/playlist.m3u8';
 
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(videoSrc);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => {
-          console.warn("Autoplay failed:", err);
-        });
-      });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = videoSrc;
-      video.addEventListener('loadedmetadata', () => {
-        video.play().catch(err => {
-          console.warn("Autoplay failed:", err);
-        });
-      });
-    } else {
-      alert("HLS is not supported in this browser.");
-    }
-  </script>
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(playlistUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Native HLS (Safari)
+            video.src = playlistUrl;
+            video.addEventListener('loadedmetadata', () => video.play());
+        } else {
+            alert('HLS not supported in this browser.');
+        }
+    </script>
 </body>
+
 </html>
