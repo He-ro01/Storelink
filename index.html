@@ -1,53 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Play</title>
-
-    <!-- Google Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <link rel="stylesheet" href="style.css">
-
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-    <script type='text/javascript'
-        src='//pl26775544.profitableratecpm.com/08/76/84/087684423931d05a5b32554305631d94.js'></script>
-    <div id="container-356875387e6a7e1f03dccc4c4c35eb24"></div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Byte-Range HLS Video Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #fafafa;
+    }
+    video {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
-
 <body>
-    <div class="section-1">
-        <div class="card">
-            <div class="icon-container">
-                <img src="icon.png" alt="App Icon" />
-                <video controls="true"
-                    src="https://media.redgifs.com/LawngreenAnguishedSiberiantiger-mobile.m4s"></video>
-            </div>
-            <div class="text-container">
-                <h1>Ali The Ragdoll</h1>
-                <a class="install-button"
-                    href="https://play.google.com/store/apps/details?id=com.herogenie.crazychase&hl=en" target="_blank"
-                    rel="noopener noreferrer">
-                    Install on Google Play
-                </a>
-                <a href="https://www.profitableratecpm.com/g1rui28njh?key=3a2f5bd6d4658b95755da110c2cff329"
-                    target="_blank" rel="nofollow">
-                    Click here to continue
-                </a>
+  <h1>Byte-Range Based HLS Playback</h1>
+  <video id="video" controls muted playsinline></video>
 
-            </div>
-        </div>
-    </div>
-    <script>
-        fetch('https://ziditlytics-backend.onrender.com/track')
-            .then(res => res.json())
-            .then(data => console.log('Visit tracked:', data))
-            .catch(err => console.error('Tracking failed:', err));
-    </script>
+  <script>
+    // The URL of the single large .m4s file
+    const baseUrl = "https://media.redgifs.com/AlarmingJuicyWoodstorks-mobile.m4s";
 
+    // Initialization segment byte range (length@offset)
+    const initSegment = "1433@0";
+
+    // Byte ranges for media segments (length@offset)
+    const segments = [
+      "261489@1433",
+      "303728@262922",
+      "341823@566650",
+      "370377@908473",
+      "326299@1278850",
+      "355767@1605149",
+      "313570@1960916",
+      "309220@2274486",
+      "296417@2583706",
+      "35237@2880123"
+    ];
+
+    // Duration in seconds for each segment (must match segments length)
+    const durations = [2,2,2,2,2,2,2,2,2,0.166667];
+
+    // Generate the playlist content
+    let playlist = `#EXTM3U
+#EXT-X-VERSION:7
+#EXT-X-TARGETDURATION:${Math.ceil(Math.max(...durations))}
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-MAP:URI="${baseUrl}",BYTERANGE="${initSegment}"
+`;
+
+    for (let i = 0; i < segments.length; i++) {
+      playlist += `#EXTINF:${durations[i]},\n`;
+      playlist += `#EXT-X-BYTERANGE:${segments[i]}\n`;
+      playlist += `${baseUrl}\n`;
+    }
+    playlist += "#EXT-X-ENDLIST\n";
+
+    // Create a Blob URL for the playlist
+    const blob = new Blob([playlist], { type: "application/vnd.apple.mpegurl" });
+    const playlistUrl = URL.createObjectURL(blob);
+
+    const video = document.getElementById("video");
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(playlistUrl);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play();
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari or native HLS support
+      video.src = playlistUrl;
+      video.addEventListener('loadedmetadata', () => video.play());
+    } else {
+      console.error("HLS not supported in this browser.");
+      video.insertAdjacentHTML('afterend', '<p>Your browser does not support HLS playback.</p>');
+    }
+  </script>
 </body>
-
 </html>
